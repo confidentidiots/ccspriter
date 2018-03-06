@@ -23,10 +23,13 @@ def main():
             print('erroneous card', datum['name'])
             sys.exit(1)
 
-        images.append(img)
+        images.append({
+            'json': datum,
+            'img': img
+        })
 
 
-    image_width, image_height = images[0].size
+    image_width, image_height = images[0]['img'].size
 
     print("all images assumed to be %d by %d." % (image_width, image_height))
 
@@ -44,7 +47,11 @@ def main():
 
     print("created.")
 
-    for count, image in enumerate(images):
+    spritedata = []
+    for count, imagedict in enumerate(images):
+        cardjson = imagedict['json']
+        image = imagedict['img']
+
         xidx = count % n_per_row
         yidx = math.floor(count / n_per_row)
         x = xidx * image_width
@@ -52,10 +59,45 @@ def main():
         print("idx=(%d, %d) xy=(%d, %d)..." % (xidx, yidx, x, y))
         master.paste(image,(x,y))
         print("added.")
+        spritedata.append({
+            'filename': cardjson['id'],
+            'frame': {
+                'x': x,
+                'y': y,
+                'w': image_width,
+                'h': image_height
+            },
+            'rotated': False,
+            'trimmed': False,
+            'spriteSourceSize': {
+                'x': 0,
+                'y': 0,
+                'w': image_width,
+                'h': image_height
+            },
+            'sourceSize': {
+                'w': image_width,
+                'h': image_height
+            },
+            'pivot': {
+                'x': 0.5,
+                'y': 0.5
+            }
+        })
     print("done adding icons.")
 
-    print("saving master...",)
-    master.save('master.png')
+    masterspritedata = {
+        'frames': spritedata,
+        'meta': {
+            'app': 'https://github.com/confidentidiots/ccspriter'
+        }
+    }
+
+    print("saving spritesheet image...",)
+    master.save('cardspritesheet.png')
+    print("saving spritesheet datafile...")
+    with open('cardspritesheet.json', 'w') as outfile:
+        json.dump(masterspritedata, outfile)
     print("saved!")
 
 if __name__ == '__main__':
