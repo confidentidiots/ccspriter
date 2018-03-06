@@ -4,6 +4,7 @@ from io import BytesIO, StringIO
 import re
 import base64
 import sys
+import math
 
 
 def main():
@@ -29,9 +30,11 @@ def main():
 
     print("all images assumed to be %d by %d." % (image_width, image_height))
 
-    master_width = (image_width * len(images) )
-    #seperate each image with lots of whitespace
-    master_height = image_height
+    N = len(images)
+    n_per_row = math.ceil(math.sqrt(N))
+    master_width = image_width * n_per_row
+    master_height = image_height * n_per_row
+
     print("the master image will by %d by %d" % (master_width, master_height))
     print("creating image...",)
     master = Image.new(
@@ -42,9 +45,12 @@ def main():
     print("created.")
 
     for count, image in enumerate(images):
-        location = image_width*count
-        print("adding at %d..." % (location),)
-        master.paste(image,(location,0))
+        xidx = count % n_per_row
+        yidx = math.floor(count / n_per_row)
+        x = xidx * image_width
+        y = yidx * image_height
+        print("idx=(%d, %d) xy=(%d, %d)..." % (xidx, yidx, x, y))
+        master.paste(image,(x,y))
         print("added.")
     print("done adding icons.")
 
